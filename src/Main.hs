@@ -2,60 +2,63 @@
 
 -- TODO:
 -- enable passing arguments from command line (github user id, name of project/repo to build)
--- build string (:: IsString Text) for remote URL
+--[x] build string (:: IsString Text) for remote URL
 -- Study how to combine let and do
 -- make a function like proc that takes one 2-tuple (command, [arg]) and evaluates to
 --      proc command [arg] empty
 -- then map that fn over a list of 2-tuples to consolidate many lines of proc...
 -- DONE: learn how to convert a String to a Text --- import qualified Data.Text as T //  (T.pack string)
 
-
-
 module Main where
 
 import Turtle
+import Data.Text 
 
+githubUserName :: Text
+githubUserName = "gptix"
 
---githubUserName :: String
---githubUserName = "gptix"
+repoName :: Text
+repoName = "foo"
 
---repoName :: String
---repoName = "foo"
+localGitDir :: Text
+localGitDir = "/home/gt/gitstuff"
 
---locaGitDir :: String
---localGitDir = "/home/gt/gitstuff"
--- or
---localGitdire = T.pack "/home/gt/gitstuff"
+gitHubSSHString :: Text
+gitHubSSHString = Data.Text.concat ["git@github.com:", githubUserName, pack "/", repoName]
 
---gitHubSSHString :: Text
---gitHubSSHString = T.pack $ concat ["git@github.com:", githubUserName, "/", repoName)
+type ProcCmd = Text
+type ProcArg = Text
 
---type ProcCmd = Text
---type ProcArg = Text
- 
---procEmpty MonadIO io => (ProcCmd, [ProcArg]) -> io ExitCode
---procEmpty (comd, args) = proc comd args (empty :: Shell Line)
+  
+procEmpty :: MonadIO io => (ProcCmd, [ProcArg]) -> io ExitCode
+procEmpty (comd, args) = proc comd args Turtle.empty
 
---map procEmpty (   cmdArgsPairs :: [  ( ProcComd, [ProcArg] )  ]   )
+-- I'd like to replace many lines in the main block with something like the following:
 --map procEmpty [ ("stack", ["setup"])
 --              , ("git", ["init"]),
 --              , ("git", ["add","."])
 --              , ("git", ["commit","-m","\"Initial commit.\""])]
+-- Question: map will collect a structure of results of applying its function to each set of data in a node of map's target.
+-- I need to create something that can be returned.
 
 
+  
 main = do
     cd "/home/gt/gitstuff/"
-    proc "stack" ["new", "foo", "simple"] empty 
+    proc "stack" ["new", repoName, "simple"] Turtle.empty
     cd "./foo/"
-    proc "stack" ["setup"] empty
-    proc "git" ["init"] empty
-    proc "git" ["add", "."] empty
-    proc "git" ["commit", "-m", "\"Initial commit.\""] empty
-    proc "git" ["remote", "add", "origin", "git@github.com:gptix/foo"] empty
-    proc "hub" ["create", "-d", "foo"] empty
-    proc "git" ["push", "origin", "master"] empty 
+    proc "stack" ["setup"] Turtle.empty
+    proc "git" ["init"] Turtle.empty
+    proc "git" ["add", "."] Turtle.empty
+    proc "git" ["commit", "-m", "\"Initial commit.\""] Turtle.empty
+    proc "git" ["remote", "add", "origin", "git@github.com:gptix/foo"] Turtle.empty
+    proc "hub" ["create", "-d", "foo"] Turtle.empty
+    proc "git" ["push", "origin", "master"] Turtle.empty 
 
 
+
+
+      
 -- should be something like
       
 {-main = do
