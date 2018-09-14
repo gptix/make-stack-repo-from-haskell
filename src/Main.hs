@@ -20,7 +20,7 @@ githubUserName = "gptix"
 repoName :: Text
 repoName = "foo"
 
-localGitDir :: Text
+localGitDir :: String
 localGitDir = "/home/gt/gitstuff"
 
 gitHubSSHString :: Text
@@ -29,6 +29,7 @@ gitHubSSHString = Data.Text.concat ["git@github.com:", githubUserName, pack "/",
 type ProcCmd = Text
 type ProcArg = Text
 
+tempty = Turtle.empty
   
 procEmpty :: MonadIO io => (ProcCmd, [ProcArg]) -> io ExitCode
 procEmpty (comd, args) = proc comd args Turtle.empty
@@ -42,18 +43,18 @@ procEmpty (comd, args) = proc comd args Turtle.empty
 -- I need to create something that can be returned.
 
 
-  
+-- this one works  
 main = do
-    cd "/home/gt/gitstuff/"
-    proc "stack" ["new", repoName, "simple"] Turtle.empty
-    cd "./foo/"
-    proc "stack" ["setup"] Turtle.empty
-    proc "git" ["init"] Turtle.empty
-    proc "git" ["add", "."] Turtle.empty
-    proc "git" ["commit", "-m", "\"Initial commit.\""] Turtle.empty
-    proc "git" ["remote", "add", "origin", "git@github.com:gptix/foo"] Turtle.empty
-    proc "hub" ["create", "-d", "foo"] Turtle.empty
-    proc "git" ["push", "origin", "master"] Turtle.empty 
+    cd $ fromString localGitDir
+    proc "stack" ["new", repoName, "simple"] tempty
+    cd $ fromString ("./" ++ (unpack repoName) ++ "/")
+    proc "stack" ["setup"] tempty
+    proc "git" ["init"] tempty
+    proc "git" ["add", "."] tempty
+    proc "git" ["commit", "-m", "\"Initial commit.\""] tempty
+    proc "git" ["remote", "add", "origin", Data.Text.concat ["git@github.com:", githubUserName, "/", repoName] ] tempty
+    proc "hub" ["create", "-d", repoName] tempty
+    proc "git" ["push", "origin", "master"] tempty 
 
 
 
