@@ -24,7 +24,7 @@ localGitDir :: String
 localGitDir = "/home/gt/gitstuff"
 
 gitHubSSHString :: Text
-gitHubSSHString = Data.Text.concat ["git@github.com:", githubUserName, pack "/", repoName]
+gitHubSSHString = Data.Text.concat ["git@github.com:", githubUserName, pack "/",repoName]
 
 type ProcCmd = Text
 type ProcArg = Text
@@ -32,17 +32,32 @@ type ProcArg = Text
 tempty = Turtle.empty
   
 procEmpty :: MonadIO io => (ProcCmd, [ProcArg]) -> io ExitCode
-procEmpty (comd, args) = proc comd args Turtle.empty
-
--- I'd like to replace many lines in the main block with something like the following:
+procEmpty (comd, args) = proc comd args tempty
+  
+-- I'd like to replace many lines in the main block with something like the following:)
 --map procEmpty [ ("stack", ["setup"])
 --              , ("git", ["init"]),
 --              , ("git", ["add","."])
 --              , ("git", ["commit","-m","\"Initial commit.\""])]
 -- Question: map will collect a structure of results of applying its function to each set of data in a node of map's target.
 -- I need to create something that can be returned.
+-- I will try using either mapM_ or mapM
+  
 
+-- this one works  
+main = do
+    cd $ fromString localGitDir
+    procEmpty  ("stack", ["new", repoName, "simple"])
+    cd $ fromString ("./" ++ (unpack repoName) ++ "/")
+    procEmpty ("stack", ["setup"])
+    procEmpty ("git", ["init"]) 
+    procEmpty ("git", ["add", "."])
+    procEmpty ("git", ["commit", "-m", "\"Initial commit.\""])
+    procEmpty ("git", ["remote", "add", "origin", Data.Text.concat ["git@github.com:", githubUserName, "/", repoName] ])
+    procEmpty ("hub", ["create", "-d", repoName])
+    procEmpty ("git", ["push", "origin", "master"])
 
+{-
 -- this one works  
 main = do
     cd $ fromString localGitDir
@@ -55,7 +70,10 @@ main = do
     proc "git" ["remote", "add", "origin", Data.Text.concat ["git@github.com:", githubUserName, "/", repoName] ] tempty
     proc "hub" ["create", "-d", repoName] tempty
     proc "git" ["push", "origin", "master"] tempty 
+-}
 
+
+      
 
 
 
