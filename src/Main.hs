@@ -1,8 +1,9 @@
+
 {-# LANGUAGE OverloadedStrings #-}
 
 -- TODO: enable passing arguments from command line (github user id, name of project/repo to build)
 -- DONE: build string (:: IsString Text) for remote URL
--- TODO: Study how to combine let and do
+-- DONE: Study how to combine let and do
 -- DONE: make a function like proc that takes one 2-tuple (command, [arg]) and evaluates to
 --      proc command [arg] empty
 -- DONE: then map that fn over a list of 2-tuples to consolidate many lines of proc...
@@ -13,37 +14,66 @@ module Main where
 import Turtle
 import Data.Text 
 
-githubUserName :: Text
-githubUserName = "gptix"
-
-repoName :: Text
-repoName = "foo"
-
-localGitDir :: String
-localGitDir = "/home/gt/gitstuff"
-
-gitHubSSHString :: Text
-gitHubSSHString = Data.Text.concat ["git@github.com:", githubUserName, pack "/",repoName]
-
 type ProcCmd = Text
 type ProcArg = Text
-
-tempty = Turtle.empty
   
 procEmpty :: MonadIO io => (ProcCmd, [ProcArg]) -> io ExitCode
-procEmpty (comd, args) = proc comd args tempty
+procEmpty (comd, args) = proc comd args Turtle.empty
+
+{-  
+main =
+  -- I want these three variables to be populated by values passed by a command line parser.
+  let localGitDir    = (  "/home/gt/gitstuff" :: String)
+      repoName       = (  "test-optparse"               :: Text) 
+      githubUserName = (  "gptix"             :: Text) in 
+    do
+      cd $ fromString localGitDir
+      procEmpty  ("stack", ["new", repoName, "simple"])
+      cd $ fromString ("./" ++ (unpack repoName) ++ "/")
+      mapM_ procEmpty [ ("stack", ["setup"])
+                      , ("git", ["init"]) 
+                      , ("git", ["add", "."])
+                      , ("git", ["commit", "-m", "\"Initial commit.\""])
+                      , ("git", ["remote", "add", "origin", Data.Text.concat ["git@github.com:", githubUserName, "/", repoName] ])
+                      , ("hub", ["create", "-d", repoName])
+                      , ("git", ["push", "origin", "master"]) ]
+-}
+
+main = let l = ( "/home/gt/gitstuff" :: String)
+           r = (  "foo"              :: Text) 
+           g = (  "gptix"            :: Text) in
+           createStackProject l r g
+           
+
+createStackProject :: MonadIO io => String -> Text -> Text -> io ()
+createStackProject localGitDir repoName githubUserName = do
+        cd $ fromString localGitDir
+        procEmpty  ("stack", ["new", repoName, "simple"])
+        cd $ fromString ("./" ++ (unpack repoName) ++ "/")
+        mapM_ procEmpty [ ("stack", ["setup"])
+                        , ("git", ["init"]) 
+                        , ("git", ["add", "."])
+                        , ("git", ["commit", "-m", "\"Initial commit.\""])
+                        , ("git", ["remote", "add", "origin", Data.Text.concat ["git@github.com:", githubUserName, "/", repoName] ])
+                        , ("hub", ["create", "-d", repoName])
+                        , ("git", ["push", "origin", "master"]) ]
   
-main = do
-    cd $ fromString localGitDir
-    procEmpty  ("stack", ["new", repoName, "simple"])
-    cd $ fromString ("./" ++ (unpack repoName) ++ "/")
-    mapM_ procEmpty [ ("stack", ["setup"])
-                    , ("git", ["init"]) 
-                    , ("git", ["add", "."])
-                    , ("git", ["commit", "-m", "\"Initial commit.\""])
-                    , ("git", ["remote", "add", "origin", Data.Text.concat ["git@github.com:", githubUserName, "/", repoName] ])
-                    , ("hub", ["create", "-d", repoName])
-                    , ("git", ["push", "origin", "master"]) ]
+
+
+--githubUserName :: Text
+--githubUserName = "gptix"
+
+--repoName :: Text
+--repoName = "foo"
+
+--localGitDir :: String
+--localGitDir = "/home/gt/gitstuff"
+
+--gitHubSSHString :: Text
+--gitHubSSHString = Data.Text.concat ["git@github.com:", githubUserName, pack "/",repoName]
+
+-- tempty = Turtle.empty
+
 
 
 {-
@@ -59,11 +89,9 @@ main = do
     procEmpty ("git", ["remote", "add", "origin", Data.Text.concat ["git@github.com:", githubUserName, "/", repoName] ])
     procEmpty ("hub", ["create", "-d", repoName])
     procEmpty ("git", ["push", "origin", "master"])
-
 -}
   
 {-
-
 -- this one works  
 main = do
     cd $ fromString localGitDir
